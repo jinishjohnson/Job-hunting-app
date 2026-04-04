@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">UAE Job Finder</string>
+    <string name="title_activity_main">UAE Job Finder</string>
+    <string name="package_name">com.uaejobfinder.app</string>
+    <string name="custom_url_scheme">com.uaejobfinder.app</string>
+</resources>

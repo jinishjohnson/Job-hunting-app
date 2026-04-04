@@ -1,0 +1,21 @@
+{
+  "name": "UAE Job Finder",
+  "short_name": "UAE Jobs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0A84FF",
+  "description": "Find your dream job in UAE - Dubai, Sharjah, and Ajman.",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/uae-jobs/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/uae-jobs/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

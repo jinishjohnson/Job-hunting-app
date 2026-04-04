@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - name: string (required)
+    //   - email: string (required)
+    //   - skills: list (optional)
+    //   - experience: string (optional)
+    //   - cvUrl: string (optional)
+    //   - role: string (required, 'user' or 'admin')
+    //   - createdAt: timestamp (optional)
+    //
+    // Collection: jobs
+    // Document ID: {jobId}
+    // Fields:
+    //   - title: string (required)
+    //   - company: string (required)
+    //   - location: string (required, 'Dubai', 'Sharjah', 'Ajman')
+    //   - salary: string (optional)
+    //   - description: string (required)
+    //   - requirements: string (optional)
+    //   - jobType: string (required, 'Full-time', 'Part-time', 'Contract', 'Freelance')
+    //   - postedDate: timestamp (required)
+    //   - isVerified: bool (optional)
+    //   - authorUid: string (required)
+    //   - scamReportCount: int (optional)
+    //
+    // Collection: reports
+    // Document ID: {reportId}
+    // Fields:
+    //   - jobId: string (required)
+    //   - reporterId: string (required)
+    //   - reason: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "jinishcena@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidJob(data) {
+      return data.keys().hasAll(['title', 'company', 'location', 'description', 'jobType', 'postedDate', 'authorUid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.company is string && data.company.size() > 0 && data.company.size() < 100 &&
+             data.location in ['Dubai', 'Sharjah', 'Ajman'] &&
+             data.description is string && data.description.size() > 0 && data.description.size() < 10000 &&
+             data.jobType in ['Full-time', 'Part-time', 'Contract', 'Freelance'] &&
+             data.postedDate is timestamp &&
+             data.authorUid is string;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['jobId', 'reporterId', 'reason', 'createdAt']) &&
+             data.jobId is string &&
+             data.reporterId is string &&
+             data.reason is string && data.reason.size() > 0 && data.reason.size() < 1000 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true; // Publicly readable
+      allow create: if isAuthenticated() && isValidJob(request.resource.data) && request.resource.data.authorUid == request.auth.uid;
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.authorUid && isValidJob(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/saved_jobs/{savedJobId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidReport(request.resource.data) && request.resource.data.reporterId == request.auth.uid;
+    }
+  }
+}

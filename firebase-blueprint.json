@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information including skills and experience.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "name": { "type": "string", "description": "Full name of the user." },
+        "email": { "type": "string", "description": "Email address of the user." },
+        "skills": { "type": "array", "items": { "type": "string" }, "description": "List of skills." },
+        "experience": { "type": "string", "description": "Work experience summary." },
+        "cvUrl": { "type": "string", "description": "URL to the uploaded CV." },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the profile was created." }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Job": {
+      "title": "Job Listing",
+      "description": "Represents a job opening in the UAE.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Job title." },
+        "company": { "type": "string", "description": "Company name." },
+        "location": { "type": "string", "enum": ["Dubai", "Sharjah", "Ajman"], "description": "Job location." },
+        "salary": { "type": "string", "description": "Salary range or amount." },
+        "description": { "type": "string", "description": "Full job description." },
+        "requirements": { "type": "string", "description": "Job requirements." },
+        "jobType": { "type": "string", "enum": ["Full-time", "Part-time", "Contract", "Freelance"], "description": "Type of employment." },
+        "postedDate": { "type": "string", "format": "date-time", "description": "When the job was posted." },
+        "isVerified": { "type": "boolean", "description": "Whether the job is verified by admin." },
+        "authorUid": { "type": "string", "description": "UID of the user who posted the job." },
+        "scamReportCount": { "type": "integer", "description": "Number of scam reports." }
+      },
+      "required": ["title", "company", "location", "description", "jobType", "postedDate"]
+    },
+    "SavedJob": {
+      "title": "Saved Job",
+      "description": "A job saved by a user for later viewing.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who saved the job." },
+        "jobId": { "type": "string", "description": "ID of the saved job." },
+        "savedAt": { "type": "string", "format": "date-time", "description": "When the job was saved." }
+      },
+      "required": ["userId", "jobId"]
+    },
+    "Report": {
+      "title": "Job Report",
+      "description": "A report filed against a job listing for potential scam or issues.",
+      "type": "object",
+      "properties": {
+        "jobId": { "type": "string", "description": "ID of the reported job." },
+        "reporterId": { "type": "string", "description": "UID of the user reporting the job." },
+        "reason": { "type": "string", "description": "Reason for reporting." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the report was filed." }
+      },
+      "required": ["jobId", "reporterId", "reason"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles."
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Job listings."
+    },
+    "/users/{userId}/saved_jobs/{savedJobId}": {
+      "schema": "SavedJob",
+      "description": "Jobs saved by a specific user."
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Reports filed against jobs."
+    }
+  }
+}
